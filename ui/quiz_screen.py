@@ -176,13 +176,18 @@ class QuizScreen(ctk.CTkFrame):
                 self.target_image_label.configure(image=self.app.blank_ctk_image, text="Image not found")
             self.target_side.grid()  # Show target image
             self.predicted_side.grid()  # Show predicted image
+            self.image_container.grid()  # Ensure the container is visible
         else:
-            # Hide images in hard mode
-            self.target_side.grid_remove()
-            self.predicted_side.grid_remove()
+            # Hide images in hard mode and collapse the container
+            self.target_side.grid_forget()
+            self.predicted_side.grid_forget()
+            self.image_container.grid_forget()  # Hide the container itself
 
         # Reset prediction image
         self.predicted_image_label.configure(image=self.app.blank_ctk_image, text="")
+
+        # Adjust the window size after layout changes
+        self.app._adjust_window_size()
 
     def update_prediction(self, predicted_letter):
         """
