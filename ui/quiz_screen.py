@@ -1,12 +1,8 @@
-"""
-Quiz screen module for the ASL Quiz application
-"""
 import customtkinter as ctk
 import numpy as np
-from PIL import Image, ImageTk
 
 from config import FONT_FAMILY, ASL_CLASS_NAMES
-from utils.image_utils import process_frame, load_asl_letter_image
+from utils.image_utils import load_asl_letter_image, process_frame
 
 
 class QuizScreen(ctk.CTkFrame):
@@ -34,7 +30,7 @@ class QuizScreen(ctk.CTkFrame):
             text="ASL Quiz",
             font=(FONT_FAMILY, 24, "bold")
         )
-        self.label_title.pack(pady=10)
+        self.label_title.grid(row=0, column=0, columnspan=2, pady=10)
 
         # Camera canvas
         self.canvas = ctk.CTkCanvas(
@@ -43,7 +39,7 @@ class QuizScreen(ctk.CTkFrame):
             height=480,
             bg="black"
         )
-        self.canvas.pack(pady=10)
+        self.canvas.grid(row=1, column=0, columnspan=2, pady=10)
 
         # Instruction label
         self.label_instruction = ctk.CTkLabel(
@@ -51,7 +47,7 @@ class QuizScreen(ctk.CTkFrame):
             text="Show the sign for the letter below:",
             font=(FONT_FAMILY, 18)
         )
-        self.label_instruction.pack(pady=10)
+        self.label_instruction.grid(row=2, column=0, columnspan=2, pady=10)
 
         # Target letter display
         self.label_target = ctk.CTkLabel(
@@ -60,11 +56,11 @@ class QuizScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 36),
             text_color="white"
         )
-        self.label_target.pack(pady=10)
+        self.label_target.grid(row=3, column=0, columnspan=2, pady=10)
 
         # Container for images
         self.image_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.image_container.pack(pady=10)
+        self.image_container.grid(row=4, column=0, columnspan=2, pady=10)
 
         # Set up left side (target image)
         self._setup_target_side()
@@ -79,7 +75,7 @@ class QuizScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 16),
             command=self.app.next_letter
         )
-        self.button_next.pack(pady=10)
+        self.button_next.grid(row=5, column=0, pady=10)
 
         self.button_home = ctk.CTkButton(
             self,
@@ -87,7 +83,7 @@ class QuizScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 16),
             command=self.app.show_home_screen
         )
-        self.button_home.pack(pady=10)
+        self.button_home.grid(row=5, column=1, pady=10)
 
     def _setup_target_side(self):
         """Set up the target image side"""
@@ -100,7 +96,7 @@ class QuizScreen(ctk.CTkFrame):
             text="Sign to Perform",
             font=(FONT_FAMILY, 16, "bold")
         )
-        self.target_label.pack(pady=(0, 5))
+        self.target_label.grid(row=0, column=0, pady=(0, 5))
 
         # Frame for image
         self.target_frame = ctk.CTkFrame(
@@ -109,8 +105,8 @@ class QuizScreen(ctk.CTkFrame):
             height=240,
             fg_color="transparent"
         )
-        self.target_frame.pack()
-        self.target_frame.pack_propagate(False)
+        self.target_frame.grid(row=1, column=0)
+        self.target_frame.grid_propagate(False)
 
         # Image label
         self.target_image_label = ctk.CTkLabel(
@@ -131,7 +127,7 @@ class QuizScreen(ctk.CTkFrame):
             text="Predicted Sign",
             font=(FONT_FAMILY, 16, "bold")
         )
-        self.predicted_label.pack(pady=(0, 5))
+        self.predicted_label.grid(row=0, column=0, pady=(0, 5))
 
         # Frame for image
         self.predicted_frame = ctk.CTkFrame(
@@ -140,8 +136,8 @@ class QuizScreen(ctk.CTkFrame):
             height=240,
             fg_color="transparent"
         )
-        self.predicted_frame.pack()
-        self.predicted_frame.pack_propagate(False)
+        self.predicted_frame.grid(row=1, column=0)
+        self.predicted_frame.grid_propagate(False)
 
         # Image label
         self.predicted_image_label = ctk.CTkLabel(
@@ -157,7 +153,7 @@ class QuizScreen(ctk.CTkFrame):
             text="",
             font=(FONT_FAMILY, 16)
         )
-        self.label_feedback.pack(pady=(5, 0))
+        self.label_feedback.grid(row=2, column=0, pady=(5, 0))
 
     def next_letter(self, difficulty):
         """
@@ -178,9 +174,12 @@ class QuizScreen(ctk.CTkFrame):
                 self.target_image_label.configure(image=self.target_ctk_img, text="")
             else:
                 self.target_image_label.configure(image=self.app.blank_ctk_image, text="Image not found")
+            self.target_side.grid()  # Show target image
+            self.predicted_side.grid()  # Show predicted image
         else:
-            # No images shown in hard mode
-            self.target_image_label.configure(image=self.app.blank_ctk_image, text="")
+            # Hide images in hard mode
+            self.target_side.grid_remove()
+            self.predicted_side.grid_remove()
 
         # Reset prediction image
         self.predicted_image_label.configure(image=self.app.blank_ctk_image, text="")
@@ -197,7 +196,7 @@ class QuizScreen(ctk.CTkFrame):
         else:
             self.label_feedback.configure(text=f"Detected: {predicted_letter}", text_color="red")
 
-        # Display the predicted letter image if in easy mode
+        # Display the predicted letter image only in easy mode
         if self.app.difficulty == "easy":
             self.predicted_ctk_img = load_asl_letter_image(predicted_letter)
             if self.predicted_ctk_img:

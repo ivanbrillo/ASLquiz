@@ -46,6 +46,9 @@ class ASLQuizApp(ctk.CTk):
         # Release camera and detector if active
         self._release_resources()
 
+        # Adjust window size to fit home screen
+        self._adjust_window_size()
+
     def start_quiz(self, difficulty):
         """
         Start the quiz with the selected difficulty
@@ -63,6 +66,9 @@ class ASLQuizApp(ctk.CTk):
             raise RuntimeError("Could not open webcam")
 
         self.detector = HandDetector()
+
+        # Adjust window size to fit quiz screen
+        self._adjust_window_size()
 
         # Generate the first letter and start processing frames
         self.next_letter()
@@ -119,3 +125,11 @@ class ASLQuizApp(ctk.CTk):
         if self.detector:
             self.detector.close()
             self.detector = None
+
+    def _adjust_window_size(self):
+        """Adjust the window size to fit the current screen content"""
+        self.update_idletasks()  # Ensure all geometry changes are applied
+        width = self.winfo_reqwidth() + 20
+        height = self.winfo_reqheight() + 20
+        self.geometry(f"{width}x{height}")
+
