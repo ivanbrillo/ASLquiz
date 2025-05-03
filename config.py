@@ -1,7 +1,3 @@
-"""
-Configuration settings for the ASL Quiz application
-"""
-
 # UI Settings
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 700
@@ -19,7 +15,7 @@ ASL_CLASS_NAMES = list("ABCDEFGHIKLMNOPQRSTUVWXY")  # ASL alphabets without J an
 # MediaPipe settings
 MEDIAPIPE_HANDS_CONFIG = {
     "static_image_mode": False,
-    "max_num_hands": 1,
+    "max_num_hands": 2,
     "min_detection_confidence": 0.8,
     "min_tracking_confidence": 0.8
 }

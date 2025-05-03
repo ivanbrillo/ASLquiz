@@ -6,15 +6,8 @@ from utils.image_utils import load_asl_letter_image, process_frame
 
 
 class QuizScreen(ctk.CTkFrame):
-    """Quiz screen with webcam feed and ASL detection"""
 
     def __init__(self, master):
-        """
-        Initialize the quiz screen
-
-        Args:
-            master: Parent widget (ASLQuizApp)
-        """
         super().__init__(master)
         self.app = master
         self.target_letter = None
@@ -23,23 +16,26 @@ class QuizScreen(ctk.CTkFrame):
         self._build_ui()
 
     def _build_ui(self):
-        """Build the UI elements"""
+        # Configure grid weights to center the entire screen
+        self.grid_columnconfigure(0, weight=1)  # Center horizontally
+        self.grid_columnconfigure(1, weight=1)  # Center horizontally
+
         # Title
         self.label_title = ctk.CTkLabel(
             self,
             text="ASL Quiz",
             font=(FONT_FAMILY, 24, "bold")
         )
-        self.label_title.grid(row=0, column=0, columnspan=2, pady=10)
+        self.label_title.grid(row=0, column=0, columnspan=2, pady=10, sticky="n")
 
         # Camera canvas
         self.canvas = ctk.CTkCanvas(
             self,
-            width=640,
+            width=500,
             height=480,
             bg="black"
         )
-        self.canvas.grid(row=1, column=0, columnspan=2, pady=10)
+        self.canvas.grid(row=1, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
 
         # Instruction label
         self.label_instruction = ctk.CTkLabel(
@@ -47,7 +43,7 @@ class QuizScreen(ctk.CTkFrame):
             text="Show the sign for the letter below:",
             font=(FONT_FAMILY, 18)
         )
-        self.label_instruction.grid(row=2, column=0, columnspan=2, pady=10)
+        self.label_instruction.grid(row=2, column=0, columnspan=2, pady=5, sticky="n")
 
         # Target letter display
         self.label_target = ctk.CTkLabel(
@@ -56,17 +52,26 @@ class QuizScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 36),
             text_color="white"
         )
-        self.label_target.grid(row=3, column=0, columnspan=2, pady=10)
+        self.label_target.grid(row=3, column=0, columnspan=2, pady=5, sticky="n")
 
         # Container for images
         self.image_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.image_container.grid(row=4, column=0, columnspan=2, pady=10)
+        self.image_container.grid(row=4, column=0, rowspan=4, columnspan=2, pady=5, sticky="ew")
 
         # Set up left side (target image)
         self._setup_target_side()
 
         # Set up right side (predicted image)
         self._setup_predicted_side()
+
+        # Feedback label
+        self.label_feedback = ctk.CTkLabel(
+            self,
+            text="",
+            font=(FONT_FAMILY, 24, "bold"),
+            text_color="red"
+        )
+        self.label_feedback.grid(row=8, column=0, columnspan=2, pady=10, sticky="n")
 
         # Control buttons
         self.button_next = ctk.CTkButton(
@@ -75,7 +80,7 @@ class QuizScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 16),
             command=self.app.next_letter
         )
-        self.button_next.grid(row=5, column=0, pady=10)
+        self.button_next.grid(row=9, column=0, pady=(0, 30), sticky="e", padx=(0, 10))
 
         self.button_home = ctk.CTkButton(
             self,
@@ -83,7 +88,7 @@ class QuizScreen(ctk.CTkFrame):
             font=(FONT_FAMILY, 16),
             command=self.app.show_home_screen
         )
-        self.button_home.grid(row=5, column=1, pady=10)
+        self.button_home.grid(row=9, column=1, pady=(0, 30), sticky="w", padx=(10, 0))
 
     def _setup_target_side(self):
         """Set up the target image side"""
@@ -106,7 +111,7 @@ class QuizScreen(ctk.CTkFrame):
             fg_color="transparent"
         )
         self.target_frame.grid(row=1, column=0)
-        self.target_frame.grid_propagate(False)
+        # self.target_frame.grid_propagate(False)
 
         # Image label
         self.target_image_label = ctk.CTkLabel(
@@ -137,7 +142,7 @@ class QuizScreen(ctk.CTkFrame):
             fg_color="transparent"
         )
         self.predicted_frame.grid(row=1, column=0)
-        self.predicted_frame.grid_propagate(False)
+        # self.predicted_frame.grid_propagate(False)
 
         # Image label
         self.predicted_image_label = ctk.CTkLabel(
@@ -156,12 +161,6 @@ class QuizScreen(ctk.CTkFrame):
         self.label_feedback.grid(row=2, column=0, pady=(5, 0))
 
     def next_letter(self, difficulty):
-        """
-        Generate the next letter for the quiz
-
-        Args:
-            difficulty (str): Difficulty level
-        """
         # Select a random letter
         self.target_letter = np.random.choice(ASL_CLASS_NAMES)
         self.label_target.configure(text=self.target_letter)
@@ -174,9 +173,11 @@ class QuizScreen(ctk.CTkFrame):
                 self.target_image_label.configure(image=self.target_ctk_img, text="")
             else:
                 self.target_image_label.configure(image=self.app.blank_ctk_image, text="Image not found")
-            self.target_side.grid()  # Show target image
-            self.predicted_side.grid()  # Show predicted image
-            self.image_container.grid()  # Ensure the container is visible
+
+            # Ensure the images are displayed side-by-side
+            self.target_side.grid(row=0, column=0, padx=30, pady=10, sticky="nsew")
+            self.predicted_side.grid(row=0, column=1, padx=30, pady=10, sticky="nsew")
+            self.image_container.grid(row=4, column=0, columnspan=2, pady=10, sticky="nsew")
         else:
             # Hide images in hard mode and collapse the container
             self.target_side.grid_forget()
@@ -190,12 +191,6 @@ class QuizScreen(ctk.CTkFrame):
         self.app._adjust_window_size()
 
     def update_prediction(self, predicted_letter):
-        """
-        Update the prediction display
-
-        Args:
-            predicted_letter (str): The predicted letter
-        """
         if predicted_letter == self.target_letter:
             self.label_feedback.configure(text="Correct!", text_color="green")
         else:
@@ -211,16 +206,11 @@ class QuizScreen(ctk.CTkFrame):
 
     def clear_prediction(self):
         """Clear prediction display when no hand is detected"""
-        self.label_feedback.configure(text="")
+        self.label_feedback.configure(text="Detected: None", text_color="red")
         self.predicted_image_label.configure(image=self.app.blank_ctk_image, text="")
 
     def update_canvas(self, frame):
-        """
-        Update the canvas with a new webcam frame
 
-        Args:
-            frame (numpy.ndarray): The processed webcam frame
-        """
         imgtk = process_frame(frame)
         self.canvas.create_image(0, 0, anchor="nw", image=imgtk)
         self.canvas.imgtk = imgtk  # Keep a reference to prevent garbage collection

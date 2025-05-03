@@ -1,29 +1,23 @@
-"""
-Main application class for the ASL Quiz
-"""
 import customtkinter as ctk
 import cv2
+
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, CAMERA_INDEX
+from models.hand_detector import HandDetector
 from ui.home_screen import HomeScreen
 from ui.quiz_screen import QuizScreen
-from models.hand_detector import HandDetector
 from utils.image_utils import create_blank_image, create_ctk_image
 
 
 class ASLQuizApp(ctk.CTk):
-    """Main ASL Quiz Application class"""
 
     def __init__(self):
-        """Initialize the application"""
         super().__init__()
-
-        # Set up the main window
         self.title(WINDOW_TITLE)
         self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
 
         # Initialize variables
-        self.cap = None
-        self.detector = None
+        self.cap = None  # Camera object
+        self.detector = None # Hand detector object
         self.difficulty = "easy"
         self.target_letter = None
 
@@ -39,7 +33,6 @@ class ASLQuizApp(ctk.CTk):
         self.show_home_screen()
 
     def show_home_screen(self):
-        """Show the home screen and hide other screens"""
         self.quiz_screen.pack_forget()
         self.home_screen.pack(fill="both", expand=True)
 
@@ -50,12 +43,6 @@ class ASLQuizApp(ctk.CTk):
         self._adjust_window_size()
 
     def start_quiz(self, difficulty):
-        """
-        Start the quiz with the selected difficulty
-
-        Args:
-            difficulty (str): Difficulty level ("easy" or "hard")
-        """
         self.difficulty = difficulty
         self.home_screen.pack_forget()
         self.quiz_screen.pack(fill="both", expand=True)
@@ -129,7 +116,6 @@ class ASLQuizApp(ctk.CTk):
     def _adjust_window_size(self):
         """Adjust the window size to fit the current screen content"""
         self.update_idletasks()  # Ensure all geometry changes are applied
-        width = self.winfo_reqwidth() + 20
+        width = self.winfo_reqwidth() + 50
         height = self.winfo_reqheight() + 20
         self.geometry(f"{width}x{height}")
-

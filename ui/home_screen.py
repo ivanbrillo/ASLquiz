@@ -1,26 +1,15 @@
-"""
-Home screen module for the ASL Quiz application
-"""
 import customtkinter as ctk
+
 from config import FONT_FAMILY
 
 
 class HomeScreen(ctk.CTkFrame):
-    """Home screen with difficulty selection"""
-
     def __init__(self, master):
-        """
-        Initialize the home screen
-
-        Args:
-            master: Parent widget (ASLQuizApp)
-        """
         super().__init__(master)
         self.app = master
         self._build_ui()
 
     def _build_ui(self):
-        """Build the UI elements"""
         # Title
         title_label = ctk.CTkLabel(
             self,
