@@ -1,8 +1,9 @@
 import random
-import customtkinter as ctk
-import numpy as np
+import time
 
-from config import FONT_FAMILY, ASL_CLASS_NAMES
+import customtkinter as ctk
+
+from config import FONT_FAMILY, ASL_CLASS_NAMES, errors
 from utils.image_utils import load_asl_letter_image, process_frame
 
 
@@ -14,6 +15,8 @@ class QuizScreen(ctk.CTkFrame):
         self.target_letter = None
         self.test_mode = None  # 'video' or 'image'
         self._build_ui()
+        self.timer = 0
+        self.number_attempts = 0
 
     def _build_ui(self):
         # Configure grid weights
@@ -41,7 +44,7 @@ class QuizScreen(ctk.CTkFrame):
 
         # Container: easy-video images (side-by-side)
         self.video_image_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.video_image_container.grid_columnconfigure((0,1), weight=1)
+        self.video_image_container.grid_columnconfigure((0, 1), weight=1)
 
         # Target image in video-easy
         self.video_target_image = ctk.CTkLabel(
@@ -85,7 +88,51 @@ class QuizScreen(ctk.CTkFrame):
         )
         self.button_home.grid(row=7, column=1, pady=(0, 30), sticky="w", padx=(10, 0))
 
+    def video_text_selector(self, epsilon=0.3):
+        if random.random() < epsilon:
+            return random.choice(['video', 'text'])
+
+        Ev = errors['video_total_errors']
+        Nv = errors['video_tests']
+        Et = errors['text_total_errors']
+        Nt = errors['text_tests']
+
+        # avoid div/0
+        if Nv == 0: return 'video'
+        if Nt == 0: return 'text'
+
+        rv = Ev / Nv
+        rt = Et / Nt
+
+        bal_v = (Nt / Nv) ** 0.5
+        bal_t = (Nv / Nt) ** 0.5
+
+        score_v = rv * bal_v
+        score_t = rt * bal_t
+
+        p_video = score_v / (score_v + score_t)
+        return 'video' if random.random() < p_video else 'text'
+
+    def select_next_letter(self, t="text", epsilon=0.3):
+        # 1) epsilon‐greedy: with small chance, pick any letter at random
+        if random.random() < epsilon:
+            return random.choice(ASL_CLASS_NAMES)
+
+        # 2) build weights = text_errors
+        weights = []
+        for ltr in ASL_CLASS_NAMES:
+            te = errors['letters'][ltr][t + '_errors']
+            weights.append(te)
+
+        # 3) randomly choose a letter weighted by its errors
+        return random.choices(ASL_CLASS_NAMES, weights=weights, k=1)[0]
+
     def next_letter(self, difficulty):
+        if self.timer != 0:
+            self.update_video_error()
+        if self.number_attempts != 0:
+            self.update_text_error()
+
         # Hide all optional UI
         self.canvas.grid_remove()
         self.video_image_container.grid_remove()
@@ -96,10 +143,11 @@ class QuizScreen(ctk.CTkFrame):
         self.label_feedback.configure(text="")
 
         # Pick mode and letter
-        self.test_mode = 'image' if random.random() < 0.3 else 'video'
-        self.target_letter = np.random.choice(ASL_CLASS_NAMES)
+        self.test_mode = self.video_text_selector()
+        self.target_letter = self.select_next_letter(self.test_mode)
 
         if self.test_mode == 'video':
+            self.timer = time.time()
             # Show camera & prompt
             self.canvas.grid()
             self.label_instruction.configure(text="Show the sign for the letter below:")
@@ -118,6 +166,7 @@ class QuizScreen(ctk.CTkFrame):
                 self.video_predicted_image.configure(image=self.app.blank_ctk_image, text="")
         else:
             # Static image test + input
+            self.number_attempts = 0
             self.canvas.grid_remove()
             self.label_instruction.configure(text="Identify the letter shown in the image:")
             self.image_test_container.grid(row=4, column=0, columnspan=2, pady=5, sticky="nsew")
@@ -137,6 +186,8 @@ class QuizScreen(ctk.CTkFrame):
         if self.test_mode == 'video':
             if predicted_letter == self.target_letter:
                 self.label_feedback.configure(text="Correct!", text_color="green")
+                self.update_video_error()
+                self.after(500, self.app.next_letter)
             else:
                 self.label_feedback.configure(text=f"Detected: {predicted_letter}", text_color="red")
 
@@ -167,6 +218,24 @@ class QuizScreen(ctk.CTkFrame):
             return
         if user_input == self.target_letter:
             self.label_feedback.configure(text="Correct!", text_color="green")
+            self.update_text_error()
+            self.after(500, self.app.next_letter)
         else:
+            self.number_attempts = self.number_attempts + 1
             self.label_feedback.configure(text=f"Entered: {user_input}", text_color="red")
         self.entry_input.delete(0, ctk.END)
+        print(errors)
+
+    def update_text_error(self):
+        errors['text_total_errors'] += self.number_attempts
+        errors['text_tests'] += self.number_attempts + 1
+        errors['letters'][self.target_letter]['text_errors'] += self.number_attempts
+        self.number_attempts = 0
+
+    def update_video_error(self):
+        used_time = (time.time() - self.timer) / 10
+        used_time = min(0 if used_time < 0.5 else used_time, 1)
+        errors['video_total_errors'] += used_time
+        errors['video_tests'] += 1
+        errors['letters'][self.target_letter]['video_errors'] += used_time
+        self.timer = 0

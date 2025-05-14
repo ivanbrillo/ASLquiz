@@ -12,6 +12,16 @@ IMAGES_DIR = "asl_images"
 MODEL_PATH = "full_model_augmented.keras"
 ASL_CLASS_NAMES = list("ABCDEFGHIKLMNOPQRSTUVWXY")  # ASL alphabets without J and Z
 
+#initialize to 1 in order to avoid division by zero for probability calculation
+errors = {
+    'video_tests': 1,
+    'text_tests': 1,
+    'text_total_errors': 1,
+    'video_total_errors': 1,
+    'letters': {ltr: {'video_errors': 1, 'text_errors': 1}
+                for ltr in ASL_CLASS_NAMES}
+}
+
 # MediaPipe settings
 MEDIAPIPE_HANDS_CONFIG = {
     "static_image_mode": False,
