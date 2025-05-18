@@ -13,10 +13,11 @@ class QuizScreen(ctk.CTkFrame):
         super().__init__(master)
         self.app = master
         self.target_letter = None
-        self.test_mode = None  # 'video' or 'image'
+        self.test_mode = None  # video or image
         self._build_ui()
         self.timer = 0
         self.number_attempts = 0
+        self.video_completed = False  # flag to allow a 1-second delay between two words
 
     def _build_ui(self):
         # Configure grid weights
@@ -133,6 +134,9 @@ class QuizScreen(ctk.CTkFrame):
         if self.number_attempts != 0:
             self.update_text_error()
 
+        # Reset video_completed flag for new letter
+        self.video_completed = False
+
         # Hide all optional UI
         self.canvas.grid_remove()
         self.video_image_container.grid_remove()
@@ -178,16 +182,19 @@ class QuizScreen(ctk.CTkFrame):
             self.entry_input.grid(row=5, column=0, pady=10)
             self.button_submit.grid(row=5, column=1, pady=10)
 
-        # Adjust layout
         self.app._adjust_window_size()
 
     def update_prediction(self, predicted_letter):
         # Always provide feedback in video mode
         if self.test_mode == 'video':
+            if self.video_completed:
+                return  # Ignore further predictions until next letter (1-second delay between words)
+
             if predicted_letter == self.target_letter:
                 self.label_feedback.configure(text="Correct!", text_color="green")
-                self.update_video_error()
-                self.after(500, self.app.next_letter)
+                self.update_video_error(correct=True)
+                self.video_completed = True  # Mark as completed
+                self.after(1000, self.app.next_letter)
             else:
                 self.label_feedback.configure(text=f"Detected: {predicted_letter}", text_color="red")
 
@@ -218,24 +225,28 @@ class QuizScreen(ctk.CTkFrame):
             return
         if user_input == self.target_letter:
             self.label_feedback.configure(text="Correct!", text_color="green")
-            self.update_text_error()
+            self.update_text_error(correct=True)
             self.after(500, self.app.next_letter)
         else:
             self.number_attempts = self.number_attempts + 1
             self.label_feedback.configure(text=f"Entered: {user_input}", text_color="red")
         self.entry_input.delete(0, ctk.END)
+
+    def update_text_error(self, correct=False):
+        add = 1 if not correct else self.number_attempts / (self.number_attempts + 1)
+        errors['text_total_errors'] += add
+        errors['text_tests'] += 1
+        errors['letters'][self.target_letter]['text_errors'] += add
+        self.number_attempts = 0
         print(errors)
 
-    def update_text_error(self):
-        errors['text_total_errors'] += self.number_attempts
-        errors['text_tests'] += self.number_attempts + 1
-        errors['letters'][self.target_letter]['text_errors'] += self.number_attempts
-        self.number_attempts = 0
+    def update_video_error(self, correct=False):
+        used_time = time.time() - self.timer
+        used_time = min(0 if used_time < 2 else used_time / 10, 1)
+        add = 1 if not correct else used_time
 
-    def update_video_error(self):
-        used_time = (time.time() - self.timer) / 10
-        used_time = min(0 if used_time < 0.5 else used_time, 1)
-        errors['video_total_errors'] += used_time
+        errors['video_total_errors'] += add
         errors['video_tests'] += 1
-        errors['letters'][self.target_letter]['video_errors'] += used_time
+        errors['letters'][self.target_letter]['video_errors'] += add
         self.timer = 0
+        print(errors)
