@@ -37,7 +37,7 @@ class QuizScreen(ctk.CTkFrame):
         )
         self.label_instruction.grid(row=2, column=0, columnspan=2, pady=5)
 
-        # Target letter frame (similar to phrase_screen style)
+        # Target letter frame
         self.letter_frame = ctk.CTkFrame(self)
         self.letter_frame.grid(row=3, column=0, columnspan=2, pady=10)
         self.letter_frame.grid_columnconfigure(0, weight=1)  # Make letter column expandable
@@ -85,7 +85,7 @@ class QuizScreen(ctk.CTkFrame):
         )
         self.prediction_caption.grid(row=0, column=0, padx=20, pady=5)
 
-        # Predicted letter display - with consistent sizing
+        # Predicted letter display
         self.predicted_letter = ctk.CTkLabel(
             self.prediction_frame,
             text="",
@@ -95,7 +95,7 @@ class QuizScreen(ctk.CTkFrame):
         )
         self.predicted_letter.grid(row=1, column=0, padx=20, pady=5)
 
-        # ASL predicted image (for easy mode) - with fixed size
+        # ASL predicted image (for easy mode)
         self.predicted_image = ctk.CTkLabel(
             self.prediction_frame,
             image=self.app.blank_ctk_image,
@@ -168,7 +168,7 @@ class QuizScreen(ctk.CTkFrame):
         return 'video' if random.random() < p_video else 'text'
 
     def select_next_letter(self, t="text", epsilon=0.3):
-        # 1) epsilon‐greedy: with small chance, pick any letter at random
+        # 1) with small chance, pick any letter at random
         if random.random() < epsilon:
             return random.choice(ASL_CLASS_NAMES)
 
