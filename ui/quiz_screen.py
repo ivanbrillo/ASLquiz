@@ -14,10 +14,10 @@ class QuizScreen(ctk.CTkFrame):
         self.app = master
         self.target_letter = None
         self.test_mode = None  # video or image
-        self._build_ui()
         self.timer = 0
         self.number_attempts = 0
         self.video_completed = False  # flag to allow a 1-second delay between two words
+        self._build_ui()
 
     def _build_ui(self):
         # Configure grid weights
@@ -28,7 +28,7 @@ class QuizScreen(ctk.CTkFrame):
         self.label_title.grid(row=0, column=0, columnspan=2, pady=10)
 
         # Video canvas
-        self.canvas = ctk.CTkCanvas(self, width=500, height=480, bg="black")
+        self.canvas = ctk.CTkCanvas(self, width=500, height=400, bg="black")
         self.canvas.grid(row=1, column=0, columnspan=2, pady=10)
 
         # Instruction
@@ -37,41 +37,93 @@ class QuizScreen(ctk.CTkFrame):
         )
         self.label_instruction.grid(row=2, column=0, columnspan=2, pady=5)
 
-        # Target letter (video mode)
+        # Target letter frame (similar to phrase_screen style)
+        self.letter_frame = ctk.CTkFrame(self)
+        self.letter_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        self.letter_frame.grid_columnconfigure(0, weight=1)  # Make letter column expandable
+        self.letter_frame.grid_columnconfigure(1, weight=1)  # Make image column same width
+
+        # Target caption
+        self.target_caption = ctk.CTkLabel(
+            self.letter_frame,
+            text="Current Letter:",
+            font=(FONT_FAMILY, 16)
+        )
+        self.target_caption.grid(row=0, column=0, padx=20, pady=5)
+
+        # Target letter display (big)
         self.label_target = ctk.CTkLabel(
-            self, text="", font=(FONT_FAMILY, 36), text_color="white"
+            self.letter_frame,
+            text="",
+            font=(FONT_FAMILY, 56, "bold"),
+            text_color="#4F8DFD",
+            width=150  # Fixed width to match prediction frame
         )
-        self.label_target.grid(row=3, column=0, columnspan=2, pady=5)
+        self.label_target.grid(row=1, column=0, padx=20, pady=5)
 
-        # Container: easy-video images (side-by-side)
-        self.video_image_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.video_image_container.grid_columnconfigure((0, 1), weight=1)
-
-        # Target image in video-easy
-        self.video_target_image = ctk.CTkLabel(
-            self.video_image_container, image=self.app.blank_ctk_image, text=""
+        # ASL target image (for both video-easy and image test)
+        self.asl_image = ctk.CTkLabel(
+            self.letter_frame,
+            image=self.app.blank_ctk_image,
+            text="",
+            width=128,
+            height=128
         )
-        self.video_target_image.grid(row=0, column=0, padx=20)
+        self.asl_image.grid(row=0, column=1, rowspan=2, padx=20, pady=10)
 
-        # Predicted image in video-easy
-        self.video_predicted_image = ctk.CTkLabel(
-            self.video_image_container, image=self.app.blank_ctk_image, text=""
+        # Prediction display (for easy mode only)
+        self.prediction_frame = ctk.CTkFrame(self)
+        self.prediction_frame.grid(row=4, column=0, columnspan=2, pady=10)
+        self.prediction_frame.grid_columnconfigure(0, weight=1)  # Make letter column expandable
+        self.prediction_frame.grid_columnconfigure(1, weight=1)  # Make image column same width
+
+        # Prediction caption
+        self.prediction_caption = ctk.CTkLabel(
+            self.prediction_frame,
+            text="Your Sign:",
+            font=(FONT_FAMILY, 16)
         )
-        self.video_predicted_image.grid(row=0, column=1, padx=20)
+        self.prediction_caption.grid(row=0, column=0, padx=20, pady=5)
 
-        # Container: image-test (centered)
-        self.image_test_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.image_test_container.grid_columnconfigure(0, weight=1)
-        self.image_test_image = ctk.CTkLabel(
-            self.image_test_container, image=self.app.blank_ctk_image, text=""
+        # Predicted letter display - with consistent sizing
+        self.predicted_letter = ctk.CTkLabel(
+            self.prediction_frame,
+            text="",
+            font=(FONT_FAMILY, 56, "bold"),
+            text_color="#FFB347",
+            width=150  # Fixed width to match target frame
         )
-        self.image_test_image.place(relx=0.5, rely=0.5, anchor="center")
+        self.predicted_letter.grid(row=1, column=0, padx=20, pady=5)
 
-        # Text input (image mode)
-        self.entry_input = ctk.CTkEntry(self, width=200, font=(FONT_FAMILY, 16))
+        # ASL predicted image (for easy mode) - with fixed size
+        self.predicted_image = ctk.CTkLabel(
+            self.prediction_frame,
+            image=self.app.blank_ctk_image,
+            text="",
+            width=128,
+            height=128
+        )
+        self.predicted_image.grid(row=0, column=1, rowspan=2, padx=20, pady=10)
+
+        # Text input (for image mode)
+        self.text_input_frame = ctk.CTkFrame(self)
+        self.text_input_frame.grid(row=5, column=0, columnspan=2, pady=10)
+
+        self.entry_input = ctk.CTkEntry(
+            self.text_input_frame,
+            width=200,
+            font=(FONT_FAMILY, 16),
+            placeholder_text="Enter letter"
+        )
+        self.entry_input.grid(row=0, column=0, padx=10, pady=10)
+
         self.button_submit = ctk.CTkButton(
-            self, text="Submit", font=(FONT_FAMILY, 16), command=self._on_submit
+            self.text_input_frame,
+            text="Submit",
+            font=(FONT_FAMILY, 16),
+            command=self._on_submit
         )
+        self.button_submit.grid(row=0, column=1, padx=10, pady=10)
 
         # Feedback
         self.label_feedback = ctk.CTkLabel(
@@ -84,6 +136,7 @@ class QuizScreen(ctk.CTkFrame):
             self, text="Next Letter", font=(FONT_FAMILY, 16), command=self.app.next_letter
         )
         self.button_next.grid(row=7, column=0, pady=(0, 30), sticky="e", padx=(0, 10))
+
         self.button_home = ctk.CTkButton(
             self, text="Back to Home", font=(FONT_FAMILY, 16), command=self.app.show_home_screen
         )
@@ -129,6 +182,7 @@ class QuizScreen(ctk.CTkFrame):
         return random.choices(ASL_CLASS_NAMES, weights=weights, k=1)[0]
 
     def next_letter(self, difficulty):
+        # Update errors if needed
         if self.timer != 0:
             self.update_video_error()
         if self.number_attempts != 0:
@@ -137,14 +191,16 @@ class QuizScreen(ctk.CTkFrame):
         # Reset video_completed flag for new letter
         self.video_completed = False
 
-        # Hide all optional UI
-        self.canvas.grid_remove()
-        self.video_image_container.grid_remove()
-        self.image_test_container.grid_remove()
-        self.entry_input.grid_remove()
-        self.button_submit.grid_remove()
-        self.label_target.configure(text="")
+        # Hide all optional UI elements
+        self.prediction_frame.grid_remove()
+        self.text_input_frame.grid_remove()
         self.label_feedback.configure(text="")
+
+        # Reset displays
+        self.label_target.configure(text="")
+        self.predicted_letter.configure(text="")
+        self.asl_image.configure(image=self.app.blank_ctk_image, text="")
+        self.predicted_image.configure(image=self.app.blank_ctk_image, text="")
 
         # Pick mode and letter
         self.test_mode = self.video_text_selector()
@@ -158,37 +214,49 @@ class QuizScreen(ctk.CTkFrame):
             self.label_target.configure(text=self.target_letter)
 
             if difficulty == 'easy':
-                # Show both images side-by-side
-                self.video_image_container.grid(row=4, column=0, columnspan=2, pady=5)
-                # Target
+                # Show target image in easy mode
                 img_t = load_asl_letter_image(self.target_letter)
-                self.video_target_image.configure(
+                self.asl_image.configure(
                     image=img_t or self.app.blank_ctk_image,
                     text="" if img_t else "Image not found"
                 )
-                # Reset predicted
-                self.video_predicted_image.configure(image=self.app.blank_ctk_image, text="")
+                # Show prediction frame for easy mode
+                self.prediction_frame.grid()
+            else:
+                # Hard mode - explicitly hide the image area
+                self.asl_image.grid_remove()
+                # Center the target letter in the frame (since image is hidden)
+                self.letter_frame.grid_columnconfigure(1, weight=0)  # Remove weight from image column
         else:
-            # Static image test + input
+            # Static image test mode
             self.number_attempts = 0
             self.canvas.grid_remove()
             self.label_instruction.configure(text="Identify the letter shown in the image:")
-            self.image_test_container.grid(row=4, column=0, columnspan=2, pady=5, sticky="nsew")
+
+            # Show image and input controls
             img = load_asl_letter_image(self.target_letter)
-            self.image_test_image.configure(
+            self.asl_image.grid()  # Make sure image is visible for text mode
+            self.letter_frame.grid_columnconfigure(1, weight=1)  # Restore image column weight
+            self.asl_image.configure(
                 image=img or self.app.blank_ctk_image,
                 text="" if img else "Image not found"
             )
-            self.entry_input.grid(row=5, column=0, pady=10)
-            self.button_submit.grid(row=5, column=1, pady=10)
+
+            # Show text input controls
+            self.text_input_frame.grid()
+            self.entry_input.delete(0, ctk.END)
+            self.entry_input.focus_set()
 
         self.app._adjust_window_size()
 
     def update_prediction(self, predicted_letter):
-        # Always provide feedback in video mode
+        # Process predictions only in video mode
         if self.test_mode == 'video':
             if self.video_completed:
-                return  # Ignore further predictions until next letter (1-second delay between words)
+                return  # Ignore further predictions until next letter
+
+            # Always update the predicted letter text
+            self.predicted_letter.configure(text=predicted_letter)
 
             if predicted_letter == self.target_letter:
                 self.label_feedback.configure(text="Correct!", text_color="green")
@@ -196,22 +264,22 @@ class QuizScreen(ctk.CTkFrame):
                 self.video_completed = True  # Mark as completed
                 self.after(1000, self.app.next_letter)
             else:
-                self.label_feedback.configure(text=f"Detected: {predicted_letter}", text_color="red")
+                self.label_feedback.configure(text=f"Keep trying!", text_color="orange")
 
             # Show predicted image only in easy mode
             if self.app.difficulty == 'easy':
                 img_p = load_asl_letter_image(predicted_letter)
-                self.video_predicted_image.configure(
+                self.predicted_image.configure(
                     image=img_p or self.app.blank_ctk_image,
                     text=""
                 )
 
     def clear_prediction(self):
         if self.test_mode == 'video':
-            # Show no-detection feedback
-            self.label_feedback.configure(text="Detected: None", text_color="red")
-            # Clear predicted sign
-            self.video_predicted_image.configure(image=self.app.blank_ctk_image, text="")
+            # Clear prediction display
+            self.predicted_letter.configure(text="")
+            self.predicted_image.configure(image=self.app.blank_ctk_image, text="")
+            self.label_feedback.configure(text="No hand detected", text_color="orange")
 
     def update_canvas(self, frame):
         if self.test_mode == 'video':
@@ -223,13 +291,15 @@ class QuizScreen(ctk.CTkFrame):
         user_input = self.entry_input.get().strip().upper()
         if not user_input:
             return
+
         if user_input == self.target_letter:
             self.label_feedback.configure(text="Correct!", text_color="green")
             self.update_text_error(correct=True)
             self.after(500, self.app.next_letter)
         else:
             self.number_attempts = self.number_attempts + 1
-            self.label_feedback.configure(text=f"Entered: {user_input}", text_color="red")
+            self.label_feedback.configure(text=f"Incorrect. Try again.", text_color="red")
+
         self.entry_input.delete(0, ctk.END)
 
     def update_text_error(self, correct=False):

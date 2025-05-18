@@ -125,16 +125,13 @@ class PhraseScreen(ctk.CTkFrame):
         # Display the phrase with appropriate styling
         self._update_phrase_display()
 
-        # Start with the first letter
-        self._move_to_next_letter()
+        # Start with the first letter (do not advance index yet)
+        self.update_frame()
 
         # Begin camera processing if not already running
         if not self.app.cap or not self.app.detector:
             self.app.cap = self.app._init_camera()
             self.app.detector = self.app._init_detector()
-
-        # Start processing frames
-        self.update_frame()
 
     def _update_phrase_display(self):
         """Update the phrase display with appropriate highlighting"""
@@ -240,8 +237,9 @@ class PhraseScreen(ctk.CTkFrame):
         # Reset completion flag
         self.letter_completed = False
 
-        # Advance index
-        self.current_index += 1
+        # Advance index only if not at the start
+        if self.current_index < len(self.phrase):
+            self.current_index += 1
 
         # Update display
         self._update_phrase_display()
@@ -253,6 +251,9 @@ class PhraseScreen(ctk.CTkFrame):
         # Check if we've completed the phrase
         if self.current_index >= len(self.phrase):
             self._show_completion()
+        else:
+            # Continue updating frames for the next letter
+            self.update_frame()
 
     def _show_completion(self):
         """Show phrase completion feedback"""
