@@ -5,6 +5,7 @@ from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, CAMERA_INDEX
 from models.hand_detector import HandDetector
 from ui.home_screen import HomeScreen
 from ui.quiz_screen import QuizScreen
+from ui.phrase_screen import PhraseScreen
 from utils.image_utils import create_blank_image, create_ctk_image
 
 
@@ -17,7 +18,7 @@ class ASLQuizApp(ctk.CTk):
 
         # Initialize variables
         self.cap = None  # Camera object
-        self.detector = None # Hand detector object
+        self.detector = None  # Hand detector object
         self.difficulty = "easy"
         self.target_letter = None
 
@@ -28,12 +29,14 @@ class ASLQuizApp(ctk.CTk):
         # Create frames for screens
         self.home_screen = HomeScreen(self)
         self.quiz_screen = QuizScreen(self)
+        self.phrase_screen = PhraseScreen(self)
 
         # Set up initial screen
         self.show_home_screen()
 
     def show_home_screen(self):
         self.quiz_screen.pack_forget()
+        self.phrase_screen.pack_forget()
         self.home_screen.pack(fill="both", expand=True)
 
         # Release camera and detector if active
@@ -45,14 +48,12 @@ class ASLQuizApp(ctk.CTk):
     def start_quiz(self, difficulty):
         self.difficulty = difficulty
         self.home_screen.pack_forget()
+        self.phrase_screen.pack_forget()
         self.quiz_screen.pack(fill="both", expand=True)
 
         # Initialize camera and hand detector
-        self.cap = cv2.VideoCapture(CAMERA_INDEX)
-        if not self.cap.isOpened():
-            raise RuntimeError("Could not open webcam")
-
-        self.detector = HandDetector()
+        self.cap = self._init_camera()
+        self.detector = self._init_detector()
 
         # Adjust window size to fit quiz screen
         self._adjust_window_size()
@@ -60,6 +61,33 @@ class ASLQuizApp(ctk.CTk):
         # Generate the first letter and start processing frames
         self.next_letter()
         self.update_frame()
+
+    def start_phrase_practice(self, phrase=None):
+        """Start the phrase practice mode"""
+        self.home_screen.pack_forget()
+        self.quiz_screen.pack_forget()
+        self.phrase_screen.pack(fill="both", expand=True)
+
+        # Initialize camera and hand detector if not already initialized
+        self.cap = self._init_camera()
+        self.detector = self._init_detector()
+
+        # Adjust window size to fit phrase screen
+        self._adjust_window_size()
+
+        # Start the phrase practice with an optional specific phrase
+        self.phrase_screen.start_phrase_practice(phrase)
+
+    def _init_camera(self):
+        """Initialize the camera"""
+        cap = cv2.VideoCapture(CAMERA_INDEX)
+        if not cap.isOpened():
+            raise RuntimeError("Could not open webcam")
+        return cap
+
+    def _init_detector(self):
+        """Initialize the hand detector"""
+        return HandDetector()
 
     def next_letter(self):
         """Generate the next letter for the quiz"""

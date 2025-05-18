@@ -21,33 +21,84 @@ class HomeScreen(ctk.CTkFrame):
             text="Welcome to ASL Quiz Game!",
             font=(FONT_FAMILY, 28, "bold")
         )
-        title_label.pack(pady=50)
+        title_label.pack(pady=30)
 
         # Instructions
         instruction_label = ctk.CTkLabel(
             self,
-            text="Choose a difficulty level to start learning ASL!",
+            text="Choose a learning mode below:",
             font=(FONT_FAMILY, 18)
         )
-        instruction_label.pack(pady=20)
+        instruction_label.pack(pady=10)
+
+        # Mode selection frame
+        modes_frame = ctk.CTkFrame(self, fg_color="transparent")
+        modes_frame.pack(pady=10)
+
+        # Letter quiz section
+        quiz_label = ctk.CTkLabel(
+            modes_frame,
+            text="Individual Letters Quiz",
+            font=(FONT_FAMILY, 16, "bold")
+        )
+        quiz_label.grid(row=0, column=0, columnspan=2, pady=(5, 10))
 
         # Easy mode button
         easy_button = ctk.CTkButton(
-            self,
+            modes_frame,
             text="Easy Mode",
             font=(FONT_FAMILY, 16),
             command=lambda: self.app.start_quiz("easy")
         )
-        easy_button.pack(pady=10)
+        easy_button.grid(row=1, column=0, padx=10, pady=5)
 
         # Hard mode button
         hard_button = ctk.CTkButton(
-            self,
+            modes_frame,
             text="Hard Mode",
             font=(FONT_FAMILY, 16),
             command=lambda: self.app.start_quiz("hard")
         )
-        hard_button.pack(pady=10)
+        hard_button.grid(row=1, column=1, padx=10, pady=5)
+
+        # Phrase practice section
+        phrase_label = ctk.CTkLabel(
+            modes_frame,
+            text="Phrase Practice",
+            font=(FONT_FAMILY, 16, "bold")
+        )
+        phrase_label.grid(row=2, column=0, columnspan=2, pady=(20, 10))
+
+        # Phrase practice button
+        phrase_button = ctk.CTkButton(
+            modes_frame,
+            text="Start Phrase Practice",
+            font=(FONT_FAMILY, 16),
+            command=self.app.start_phrase_practice,
+        )
+        phrase_button.grid(row=3, column=0, columnspan=2, padx=10, pady=5)
+
+        # Custom phrase frame
+        custom_phrase_frame = ctk.CTkFrame(self, fg_color="transparent")
+        custom_phrase_frame.pack(pady=10)
+
+        # Custom phrase entry
+        self.phrase_entry = ctk.CTkEntry(
+            custom_phrase_frame,
+            width=300,
+            font=(FONT_FAMILY, 16),
+            placeholder_text="Enter custom phrase (letters A-Z only)"
+        )
+        self.phrase_entry.grid(row=0, column=0, padx=10, pady=10)
+
+        # Custom phrase button
+        custom_phrase_button = ctk.CTkButton(
+            custom_phrase_frame,
+            text="Practice Custom Phrase",
+            font=(FONT_FAMILY, 16),
+            command=self._start_custom_phrase
+        )
+        custom_phrase_button.grid(row=0, column=1, padx=10, pady=10)
 
         # Statistics button
         stats_button = ctk.CTkButton(
@@ -57,6 +108,16 @@ class HomeScreen(ctk.CTkFrame):
             command=self.show_statistics_popup
         )
         stats_button.pack(pady=20)
+
+    def _start_custom_phrase(self):
+        """Start practice with a custom phrase from entry"""
+        phrase = self.phrase_entry.get().strip()
+        if phrase:
+            # Filter to ensure phrase only contains valid ASL letters
+            valid_chars = set(ASL_CLASS_NAMES + [" "])
+            phrase = "".join(c for c in phrase.upper() if c in valid_chars)
+            if phrase:
+                self.app.start_phrase_practice(phrase)
 
     def show_statistics_popup(self):
         popup = ctk.CTkToplevel(self)
