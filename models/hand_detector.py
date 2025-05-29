@@ -18,13 +18,7 @@ class HandDetector:
         self.class_names = ASL_CLASS_NAMES
 
     def process_frame(self, frame):
-        """
-        Args:
-            frame (numpy.ndarray): The input frame
-
-        Returns:
-            tuple: (processed_frame, results) where results is the MediaPipe detection results
-        """
+        """Returns: (processed_frame, results) where results is the MediaPipe detection results"""
         results = self.hands.process(frame)
 
         # Filter out left hands and keep only the right hand
@@ -54,13 +48,7 @@ class HandDetector:
         return frame, results
 
     def extract_landmarks(self, results):
-        """
-        Args:
-            results: MediaPipe hand detection results
-
-        Returns:
-            numpy.ndarray or None: Extracted landmarks array or None if no right hands detected
-        """
+        """ Returns: Extracted landmarks array or None if no right hands detected """
         if not results.multi_hand_landmarks:
             return None
 
@@ -73,9 +61,6 @@ class HandDetector:
 
     def predict_letter(self, landmarks):
         """
-        Args:
-            landmarks (numpy.ndarray): Hand landmarks array
-
         Returns:
             str: Predicted letter
             float: Confidence score

@@ -1,12 +1,11 @@
 import customtkinter as ctk
+import cv2
 
 from config import FONT_FAMILY, ASL_CLASS_NAMES
 from utils.image_utils import load_asl_letter_image, process_frame
-import cv2
+
 
 class PhraseScreen(ctk.CTkFrame):
-    """Screen for practicing ASL signs for entire phrases"""
-
     def __init__(self, master):
         super().__init__(master)
         self.app = master
@@ -62,7 +61,7 @@ class PhraseScreen(ctk.CTkFrame):
         )
         self.target_caption.grid(row=0, column=0, padx=20, pady=5)
 
-        # Current letter (big)
+        # Current letter
         self.current_letter = ctk.CTkLabel(
             self.letter_frame,
             text="",
@@ -134,7 +133,7 @@ class PhraseScreen(ctk.CTkFrame):
             self.app.detector = self.app._init_detector()
 
     def _update_phrase_display(self):
-        """Update the phrase display with appropriate highlighting"""
+        """Update the phrase display"""
         if not self.phrase:
             return
 
@@ -222,7 +221,7 @@ class PhraseScreen(ctk.CTkFrame):
             self.label_feedback.configure(text="Correct!", text_color="green")
             self.letter_completed = True
 
-            # Add a slight delay before moving to next letter
+            # Add a slight delay (1s) before moving to next letter
             self.after(1000, lambda: self._move_to_next_letter())
         else:
             # Wrong letter

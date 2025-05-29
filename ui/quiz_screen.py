@@ -40,8 +40,8 @@ class QuizScreen(ctk.CTkFrame):
         # Target letter frame
         self.letter_frame = ctk.CTkFrame(self)
         self.letter_frame.grid(row=3, column=0, columnspan=2, pady=10)
-        self.letter_frame.grid_columnconfigure(0, weight=1)  # Make letter column expandable
-        self.letter_frame.grid_columnconfigure(1, weight=1)  # Make image column same width
+        self.letter_frame.grid_columnconfigure(0, weight=1)
+        self.letter_frame.grid_columnconfigure(1, weight=1)
 
         # Target caption
         self.target_caption = ctk.CTkLabel(
@@ -51,17 +51,17 @@ class QuizScreen(ctk.CTkFrame):
         )
         self.target_caption.grid(row=0, column=0, padx=20, pady=5)
 
-        # Target letter display (big)
+        # Target letter display
         self.label_target = ctk.CTkLabel(
             self.letter_frame,
             text="",
             font=(FONT_FAMILY, 56, "bold"),
             text_color="#4F8DFD",
-            width=150  # Fixed width to match prediction frame
+            width=150
         )
         self.label_target.grid(row=1, column=0, padx=20, pady=5)
 
-        # ASL target image (for both video-easy and image test)
+        # ASL target image
         self.asl_image = ctk.CTkLabel(
             self.letter_frame,
             image=self.app.blank_ctk_image,
@@ -71,11 +71,11 @@ class QuizScreen(ctk.CTkFrame):
         )
         self.asl_image.grid(row=0, column=1, rowspan=2, padx=20, pady=10)
 
-        # Prediction display (for easy mode only)
+        # Prediction display
         self.prediction_frame = ctk.CTkFrame(self)
         self.prediction_frame.grid(row=4, column=0, columnspan=2, pady=10)
-        self.prediction_frame.grid_columnconfigure(0, weight=1)  # Make letter column expandable
-        self.prediction_frame.grid_columnconfigure(1, weight=1)  # Make image column same width
+        self.prediction_frame.grid_columnconfigure(0, weight=1)
+        self.prediction_frame.grid_columnconfigure(1, weight=1)
 
         # Prediction caption
         self.prediction_caption = ctk.CTkLabel(
@@ -91,11 +91,11 @@ class QuizScreen(ctk.CTkFrame):
             text="",
             font=(FONT_FAMILY, 56, "bold"),
             text_color="#FFB347",
-            width=150  # Fixed width to match target frame
+            width=150
         )
         self.predicted_letter.grid(row=1, column=0, padx=20, pady=5)
 
-        # ASL predicted image (for easy mode)
+        # ASL predicted image
         self.predicted_image = ctk.CTkLabel(
             self.prediction_frame,
             image=self.app.blank_ctk_image,
