@@ -121,16 +121,16 @@ class PhraseScreen(ctk.CTkFrame):
         self.phrase_errors = 0
         self.letter_completed = False
 
-        # Display the phrase with appropriate styling
+        # Initialize display for the first letter
         self._update_phrase_display()
-
-        # Start with the first letter (do not advance index yet)
-        self.update_frame()
 
         # Begin camera processing if not already running
         if not self.app.cap or not self.app.detector:
             self.app.cap = self.app._init_camera()
             self.app.detector = self.app._init_detector()
+
+        # Start processing frames
+        self.update_frame()
 
     def _update_phrase_display(self):
         """Update the phrase display"""
@@ -221,7 +221,7 @@ class PhraseScreen(ctk.CTkFrame):
             self.label_feedback.configure(text="Correct!", text_color="green")
             self.letter_completed = True
 
-            # Add a slight delay (1s) before moving to next letter
+            # Add a slight delay before moving to next letter
             self.after(1000, lambda: self._move_to_next_letter())
         else:
             # Wrong letter
@@ -236,9 +236,8 @@ class PhraseScreen(ctk.CTkFrame):
         # Reset completion flag
         self.letter_completed = False
 
-        # Advance index only if not at the start
-        if self.current_index < len(self.phrase):
-            self.current_index += 1
+        # Advance index
+        self.current_index += 1
 
         # Update display
         self._update_phrase_display()
@@ -250,13 +249,10 @@ class PhraseScreen(ctk.CTkFrame):
         # Check if we've completed the phrase
         if self.current_index >= len(self.phrase):
             self._show_completion()
-        else:
-            # Continue updating frames for the next letter
-            self.update_frame()
 
     def _show_completion(self):
         """Show phrase completion feedback"""
-        # Display completion message only (no accuracy)
+        # Display completion message
         self.label_feedback.configure(
             text="Phrase Completed!",
             text_color="green"
